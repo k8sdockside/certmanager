@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>cert-manager certificates</title>
+        <link rel="stylesheet" href="certmanager.css" />
+        <!-- The bridge to the app. Served by k8sdockside itself, always at this path. -->
+        <script src="/plugin-ui/_sdk/k8sdockside.js"></script>
+    </head>
+    <body class="page page-board">
+        <header class="top">
+            <div class="brand">
+                <span class="logo" id="logo"></span>
+                <div>
+                    <h1>Certificates</h1>
+                    <p id="where" class="faint">Connecting…</p>
+                </div>
+            </div>
+            <label class="search">
+                <span id="search-icon"></span>
+                <input id="query" type="search" placeholder="Find a certificate, host or issuer" autocomplete="off" spellcheck="false" />
+            </label>
+            <div class="seg" id="group" role="group" aria-label="Group by"></div>
+            <nav class="top-actions" id="top-actions"></nav>
+        </header>
+
+        <p id="error" class="banner error" hidden></p>
+        <section id="empty" class="empty" hidden></section>
+
+        <div id="board" class="board" hidden>
+            <!-- The calendar of what expires and renews when, and the numbers. -->
+            <section id="summary" class="summary"></section>
+            <nav id="filters" class="filters" aria-label="Filter certificates"></nav>
+            <main id="groups" class="groups"></main>
+        </div>
+
+        <!-- Behind the inspector when it covers the list: a click on it closes it. -->
+        <div id="scrim" class="scrim"></div>
+
+        <!-- The inspector: everything about the certificate picked. -->
+        <aside id="drawer" class="drawer" hidden aria-live="polite"></aside>
+
+        <!-- Classic scripts, not type="module": a sandboxed frame has an opaque
+             origin, so a module would be a cross-origin load. -->
+        <script src="model.js"></script>
+        <script src="kit.js"></script>
+        <script src="board.js"></script>
+    </body>
+</html>

@@ -1,0 +1,156 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rogerwesterbo/k8sdockside/main/docs/plugin.schema.json",
+    "id": "cert-manager",
+    "name": "cert-manager",
+    "version": "1.0.0",
+    "minAppVersion": "0.0.15",
+    "tagline": "TLS certificates, issued and renewed inside the cluster",
+    "icon": "lock",
+    "docs": "https://cert-manager.io/docs/",
+    "links": [
+        { "label": "cert-manager.io", "url": "https://cert-manager.io" },
+        { "label": "Documentation", "url": "https://cert-manager.io/docs/" },
+        { "label": "GitHub", "url": "https://github.com/cert-manager/cert-manager" },
+        { "label": "Plugin source", "url": "https://github.com/rogerwesterbo/k8sdockside-certmanager" }
+    ],
+    "author": "Roger Westerbo",
+    "description": "cert-manager gets TLS certificates from Let's Encrypt, your own CA, Vault or Venafi, and renews each one before it runs out. This plugin shows when every certificate expires, which renewals are stuck and exactly where — the request, the ACME order or the challenge — and why, in plain words.\n\nStart with the Overview: a verdict, a countdown to the next expiry, every certificate on a 90-day runway, and any issuance that has stalled drawn step by step. Certificates is the working page: a calendar of what expires when, every certificate grouped by its issuer with its validity, and an inspector with the whole picture — and the cmctl command to renew one by hand.\n\nCertificates, Ingresses, Gateways, issuers, requests, orders and challenges also get a panel in their detail view. Secrets are never read: only their names are shown. Changes are always shown to you before they are made.",
+    "requires": [
+        { "kind": "crd:certificates.cert-manager.io", "label": "Certificates" },
+        { "kind": "crd:certificaterequests.cert-manager.io", "label": "Certificate requests" },
+        { "kind": "crd:issuers.cert-manager.io", "label": "Issuers" },
+        { "kind": "crd:clusterissuers.cert-manager.io", "label": "Cluster issuers" },
+        { "kind": "crd:orders.acme.cert-manager.io", "label": "ACME orders", "optional": true },
+        { "kind": "crd:challenges.acme.cert-manager.io", "label": "ACME challenges", "optional": true }
+    ],
+    "ui": {
+        "kinds": ["ingresses", "gateways", "pods", "events"],
+        "write": true
+    },
+    "overview": { "entry": "overview.html" },
+    "views": [
+        { "id": "certificates", "label": "Certificates", "icon": "shield", "type": "custom", "entry": "index.html" },
+        { "id": "certificate-list", "label": "Certificate list", "icon": "rows", "kind": "crd:certificates.cert-manager.io" },
+        { "id": "requests", "label": "Certificate requests", "icon": "file", "kind": "crd:certificaterequests.cert-manager.io" },
+        { "id": "issuers", "label": "Issuers", "icon": "grant", "kind": "crd:issuers.cert-manager.io" },
+        { "id": "cluster-issuers", "label": "Cluster issuers", "icon": "globe", "kind": "crd:clusterissuers.cert-manager.io" },
+        { "id": "orders", "label": "ACME orders", "icon": "box", "kind": "crd:orders.acme.cert-manager.io" },
+        { "id": "challenges", "label": "ACME challenges", "icon": "search", "kind": "crd:challenges.acme.cert-manager.io" },
+        {
+            "id": "components",
+            "label": "cert-manager's own pods",
+            "icon": "server",
+            "kind": "pods",
+            "selector": "app.kubernetes.io/instance=cert-manager"
+        }
+    ],
+    "cards": [
+        {
+            "label": "Certificates",
+            "kind": "crd:certificates.cert-manager.io",
+            "groupBy": "status.conditions[Ready]",
+            "tones": { "True": "ok", "False": "error", "Unknown": "warn" }
+        },
+        {
+            "label": "Issuers",
+            "kind": "crd:issuers.cert-manager.io",
+            "groupBy": "status.conditions[Ready]",
+            "tones": { "True": "ok", "False": "error", "Unknown": "warn" }
+        },
+        {
+            "label": "Cluster issuers",
+            "kind": "crd:clusterissuers.cert-manager.io",
+            "groupBy": "status.conditions[Ready]",
+            "tones": { "True": "ok", "False": "error", "Unknown": "warn" }
+        },
+        {
+            "label": "Certificate requests",
+            "kind": "crd:certificaterequests.cert-manager.io",
+            "groupBy": "status.conditions[Ready]",
+            "tones": { "True": "ok", "False": "warn" }
+        },
+        {
+            "label": "ACME orders",
+            "kind": "crd:orders.acme.cert-manager.io",
+            "groupBy": "status.state",
+            "tones": { "valid": "ok", "ready": "info", "pending": "warn", "processing": "info", "invalid": "error", "errored": "error", "expired": "error" }
+        },
+        {
+            "label": "ACME challenges",
+            "kind": "crd:challenges.acme.cert-manager.io",
+            "groupBy": "status.state",
+            "tones": { "valid": "ok", "ready": "info", "pending": "warn", "processing": "info", "invalid": "error", "errored": "error", "expired": "error" }
+        },
+        {
+            "label": "cert-manager's own pods",
+            "kind": "pods",
+            "selector": "app.kubernetes.io/instance=cert-manager",
+            "groupBy": "status.phase",
+            "tones": { "Running": "ok", "Pending": "warn", "Failed": "error", "Unknown": "warn" }
+        }
+    ],
+    "charts": [
+        {
+            "id": "ready-by-condition",
+            "label": "Certificates by Ready condition",
+            "attach": "overview",
+            "unit": "count",
+            "legend": "condition",
+            "description": "How many certificates cert-manager reports Ready True, False or Unknown. Needs the controller's metrics scraped. Drawn by the plugin's own overview page.",
+            "query": "sum by (condition) (certmanager_certificate_ready_status)"
+        },
+        {
+            "id": "soonest-expiry",
+            "label": "Time to the soonest expiry",
+            "attach": "overview",
+            "unit": "seconds",
+            "description": "How long until the first certificate in the cluster runs out. It falls steadily and jumps back up each time the soonest one is renewed; a line that keeps falling is a renewal that is not happening.",
+            "query": "min(certmanager_certificate_expiration_timestamp_seconds) - time()"
+        },
+        {
+            "id": "acme-requests",
+            "label": "ACME requests",
+            "attach": "overview",
+            "unit": "ops/s",
+            "legend": "status",
+            "description": "Requests cert-manager makes to ACME servers such as Let's Encrypt, by HTTP status. A run of 4xx or 5xx is a CA refusing or failing, and the place rate limits show up.",
+            "query": "sum by (status) (rate(certmanager_http_acme_client_request_count[5m]))"
+        },
+        {
+            "id": "expiring-soon",
+            "label": "cert-manager: certificates expiring within 14 days",
+            "attach": "dashboard",
+            "unit": "count",
+            "description": "Certificates cert-manager manages that run out in the next fourteen days. A healthy cluster renews well before that, so anything above zero for long is worth a look.",
+            "query": "count((certmanager_certificate_expiration_timestamp_seconds - time()) < 14 * 86400) or vector(0)"
+        },
+        {
+            "id": "time-left",
+            "label": "Time left",
+            "attach": "crd:certificates.cert-manager.io",
+            "unit": "seconds",
+            "legend": "when",
+            "description": "Time until this certificate expires, and until cert-manager renews it. Assumes the metrics keep their own namespace label (honorLabels on the ServiceMonitor); if yours show exported_namespace, copy this plugin and change the query.",
+            "query": "label_replace(certmanager_certificate_expiration_timestamp_seconds{namespace=\"$namespace\",name=\"$name\"} - time(), \"when\", \"expires\", \"\", \"\") or label_replace(certmanager_certificate_renewal_timestamp_seconds{namespace=\"$namespace\",name=\"$name\"} - time(), \"when\", \"renews\", \"\", \"\")"
+        },
+        {
+            "id": "ready-state",
+            "label": "Ready condition",
+            "attach": "crd:certificates.cert-manager.io",
+            "unit": "count",
+            "legend": "condition",
+            "description": "Which Ready condition cert-manager reported for this certificate over time: the series at 1 is the current one.",
+            "query": "certmanager_certificate_ready_status{namespace=\"$namespace\",name=\"$name\"}"
+        }
+    ],
+    "sections": [
+        { "id": "certificate", "label": "cert-manager", "kind": "crd:certificates.cert-manager.io", "entry": "certificate.html", "height": 300 },
+        { "id": "ingress-tls", "label": "TLS", "kind": "ingresses", "entry": "tls.html", "height": 170 },
+        { "id": "gateway-tls", "label": "TLS", "kind": "gateways", "entry": "tls.html", "height": 170 },
+        { "id": "issuer", "label": "Issuer", "kind": "crd:issuers.cert-manager.io", "entry": "issuer.html", "height": 260 },
+        { "id": "cluster-issuer", "label": "Issuer", "kind": "crd:clusterissuers.cert-manager.io", "entry": "issuer.html", "height": 260 },
+        { "id": "request-chain", "label": "Issuance", "kind": "crd:certificaterequests.cert-manager.io", "entry": "chain.html", "height": 200 },
+        { "id": "order-chain", "label": "Issuance", "kind": "crd:orders.acme.cert-manager.io", "entry": "chain.html", "height": 200 },
+        { "id": "challenge-chain", "label": "Issuance", "kind": "crd:challenges.acme.cert-manager.io", "entry": "chain.html", "height": 200 }
+    ]
+}
