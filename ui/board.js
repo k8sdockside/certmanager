@@ -42,6 +42,8 @@
         day: '',
         selected: '',
         notice: '',
+        // How wide the inspector was dragged; 0 is the stylesheet's width.
+        width: 0,
     };
 
     var $ = function (id) {
@@ -98,6 +100,7 @@
         if (GROUPS.some(function (g) {
             return g.id === parts.group;
         })) state.group = parts.group;
+        if (Number(parts.width) > 0) state.width = Number(parts.width);
     }
 
     function writeHash() {
@@ -105,6 +108,7 @@
         if (state.selected) parts.push('cert=' + encodeURIComponent(state.selected));
         if (state.filter !== 'all') parts.push('filter=' + state.filter);
         if (state.group !== 'issuer') parts.push('group=' + state.group);
+        if (state.width) parts.push('width=' + state.width);
         try {
             history.replaceState(null, '', '#' + parts.join('&'));
         } catch (e) {
@@ -989,6 +993,24 @@
     );
 
     readHash();
+    // The inspector is as wide as it was left: the width is kept in the hash
+    // with the rest of the page's state.
+    document.body.appendChild(
+        K.grip({
+            panel: $('drawer'),
+            prop: '--drawer-w',
+            className: 'drawer-grip',
+            min: 360,
+            room: 420,
+            initial: state.width,
+            label: 'Resize the inspector',
+            onResize: function (px, done) {
+                if (!done) return;
+                state.width = px;
+                writeHash();
+            },
+        }),
+    );
     sdk.ready()
         .then(function (context) {
             state.ctx = context;
