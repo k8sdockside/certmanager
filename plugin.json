@@ -1,5 +1,5 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rogerwesterbo/k8sdockside/main/docs/plugin.schema.json",
+    "$schema": "https://raw.githubusercontent.com/k8sdockside/k8sdockside/main/docs/plugin.schema.json",
     "id": "cert-manager",
     "name": "cert-manager",
     "version": "1.0.0",
@@ -12,9 +12,9 @@
         { "label": "cert-manager.io", "url": "https://cert-manager.io" },
         { "label": "Documentation", "url": "https://cert-manager.io/docs/" },
         { "label": "GitHub", "url": "https://github.com/cert-manager/cert-manager" },
-        { "label": "Plugin source", "url": "https://github.com/rogerwesterbo/k8sdockside-certmanager" }
+        { "label": "Plugin source", "url": "https://github.com/k8sdockside/certmanager" }
     ],
-    "author": "Roger Westerbo",
+    "author": "K8s Dockside",
     "description": "cert-manager gets TLS certificates from Let's Encrypt, your own CA, Vault or Venafi, and renews each one before it runs out. This plugin shows when every certificate expires, which renewals are stuck and exactly where — the request, the ACME order or the challenge — and why, in plain words.\n\nStart with the Overview: a verdict, a countdown to the next expiry, every certificate on a 90-day runway, and any issuance that has stalled drawn step by step. Certificates is the working page: a calendar of what expires when, every certificate grouped by its issuer with its validity, and an inspector with the whole picture — and the cmctl command to renew one by hand.\n\nCertificates, Ingresses, Gateways, issuers, requests, orders and challenges also get a panel in their detail view. Secrets are never read: only their names are shown. Changes are always shown to you before they are made.",
     "requires": [
         { "kind": "crd:certificates.cert-manager.io", "label": "Certificates" },
