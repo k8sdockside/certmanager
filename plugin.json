@@ -3,9 +3,10 @@
     "id": "cert-manager",
     "name": "cert-manager",
     "version": "1.0.0",
-    "minAppVersion": "0.0.15",
+    "minAppVersion": "0.0.30",
     "tagline": "TLS certificates, issued and renewed inside the cluster",
     "icon": "lock",
+    "logo": "logo.svg",
     "docs": "https://cert-manager.io/docs/",
     "links": [
         { "label": "cert-manager.io", "url": "https://cert-manager.io" },
